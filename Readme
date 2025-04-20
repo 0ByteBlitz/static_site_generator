@@ -1,0 +1,29 @@
+# Static Site Generator
+
+A lightweight tool to convert markdown files into static HTML pages.
+
+## Features
+
+- Markdown to HTML conversion.
+- Customizable templates.
+- Full static site generation.
+
+## Quick Start
+
+1. Clone the repo:
+    ```git clone <repository-url>
+    cd static_site_generator
+    ```
+2. Run the script to generate your site:
+    ```bash
+    ./main.sh
+    ```
+
+Output will be in the `dist` folder.
+
+## Structure
+
+- `src/`: Source code.
+- `public/`: HTML templates.
+
+
