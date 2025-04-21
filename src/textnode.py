@@ -1,4 +1,3 @@
-from email.mime import image
 import re
 
 from enum import Enum
@@ -87,7 +86,7 @@ class TextNode:
     @staticmethod
     def split_nodes_image(old_nodes):
         new_nodes = []
-        pattern = r"!\[([^\]]*)\]\(([^)]+)\)"
+        pattern = r"!\[([^\[\]]*)\]\(([^\(\)]*)\)"  # Regex to match the image markdown syntax
 
         for node in old_nodes:
             if node.text_type != TextType.TEXT:
@@ -102,12 +101,12 @@ class TextNode:
                 alt_text = match.group(1)
                 url = match.group(2)
 
-                # Add the text before the image
+                # Add the text before the image (excluding the '!' part)
                 if start > last_index:
                     pre_text = text[last_index:start]
                     new_nodes.append(TextNode(pre_text, TextType.TEXT))
 
-                # Add the image node (without the ![ and ] part)
+                # Add the image node (alt text and url)
                 new_nodes.append(TextNode(alt_text, TextType.IMAGE, url))
 
                 last_index = end
@@ -119,10 +118,11 @@ class TextNode:
 
         return new_nodes
 
+
     @staticmethod
     def split_nodes_link(old_nodes):
         new_nodes = []
-        pattern = r"\[([^\[\]]*)\]\(([^\(\)]*)\)"
+        pattern = r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)"
 
         for node in old_nodes:
             if node.text_type != TextType.TEXT:
@@ -153,3 +153,21 @@ class TextNode:
                 new_nodes.append(TextNode(remaining_text, TextType.TEXT))
 
         return new_nodes
+    
+
+    @staticmethod
+    def text_to_textnode(text):
+        new_nodes = []
+        # Split the text into parts based on the delimiters
+        bold_parts = TextNode.split_nodes_delimiter([TextNode(text, TextType.TEXT)], "**", TextType.BOLD)
+        italic_parts = TextNode.split_nodes_delimiter(bold_parts, "*", TextType.ITALIC)
+        code_parts = TextNode.split_nodes_delimiter(italic_parts, "`", TextType.CODE)
+        link_parts = TextNode.split_nodes_link(code_parts)
+        image_parts = TextNode.split_nodes_image(link_parts)
+        # Add the parts to the new nodes list
+        for node in image_parts:
+            if node.text_type == TextType.TEXT and node.text.strip() == "":
+                continue
+            new_nodes.append(node)
+        return new_nodes
+    
