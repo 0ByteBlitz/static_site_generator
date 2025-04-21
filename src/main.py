@@ -10,9 +10,8 @@ def main():
 
     output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "docs")
 
-    if os.path.exists("public"):
-        print("Removing existing public directory...")
-        shutil.rmtree("public")
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
     
     # Copy static files from static to public
     copy_static_files(output_dir)
