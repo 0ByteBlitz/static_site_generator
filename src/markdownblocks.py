@@ -12,6 +12,7 @@ class BlockType(Enum):
     QUOTE = auto()
     ULIST = auto()
     OLIST = auto()
+    IMAGE = auto()
 
 class MarkdownBlock:
     @staticmethod
@@ -31,6 +32,8 @@ class MarkdownBlock:
             return BlockType.ULIST
         elif re.match(r"\d+\.\s", block):
             return BlockType.OLIST
+        elif '!' in block and '(' in block and ')' in block:  # Check for image markdown
+            return BlockType.IMAGE
         else:
             return BlockType.PARAGRAPH
 
@@ -54,6 +57,8 @@ class MarkdownBlock:
                 node = MarkdownBlock.handle_ulist(block)
             elif block_type == BlockType.OLIST:
                 node = MarkdownBlock.handle_olist(block)
+            elif block_type == BlockType.IMAGE:
+                node = MarkdownBlock.handle_image(block)
             else:
                 continue
 
@@ -70,7 +75,7 @@ class MarkdownBlock:
     @staticmethod
     def handle_code(block):
         lines = block.split("\n")[1:-1]  # remove ```
-        content = "\n".join(line.lstrip() for line in lines) + "\n"
+        content = "\n".join(lines)
         code_node = LeafNode("code", content)
         return ParentNode("pre", [code_node])
 
@@ -105,10 +110,21 @@ class MarkdownBlock:
                 item = match.group(1).strip()
                 children.append(LeafNode("li", MarkdownBlock.apply_inline_formatting(item)))
         return ParentNode("ol", children)
+    
+    @staticmethod
+    def handle_image(block):
+        # Match image markdown `![alt text](url)`
+        match = re.match(r'!\[([^\]]+)\]\(([^)]+)\)', block)
+        if match:
+            alt_text = match.group(1)
+            url = match.group(2)
+            return LeafNode("img", None, props={"src": url, "alt": alt_text})
+        return None
 
     @staticmethod
     def apply_inline_formatting(text):
         text = re.sub(r'`([^`]+)`', r'<code>\1</code>', text)
         text = re.sub(r'\*\*([^\*]+)\*\*', r'<b>\1</b>', text)
         text = re.sub(r'_([^_]+)_', r'<i>\1</i>', text)
+        text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2">\1</a>', text)
         return text
