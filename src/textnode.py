@@ -1,3 +1,6 @@
+from email.mime import image
+import re
+
 from enum import Enum
 
 from leafnode import LeafNode
@@ -71,3 +74,12 @@ class TextNode:
                         new_nodes.append(TextNode(part, text_type))
         return new_nodes
     
+    @staticmethod
+    def extract_markdown_images(text):
+        pattern = r"!\[([^\[\]]*)\]\(([^\(\)]*)\)"
+        return re.findall(pattern, text)
+    
+    @staticmethod
+    def extract_markdown_links(text):
+        pattern = r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)"
+        return re.findall(pattern, text)
